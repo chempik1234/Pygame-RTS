@@ -32,6 +32,12 @@ class Vehicle:
         self.soldiers_max = soldiers_max
         self.soldiers = []
 
+    def get_x(self):
+        return self.hull.origin_x
+
+    def get_y(self):
+        return self.hull.origin_y
+
     def can_get_in(self):
         return len(self.soldiers) < self.soldiers_max
 
@@ -52,7 +58,7 @@ class Vehicle:
 
     def update(self, units_list, seconds):
         self.rotate(self.rotation_speed * self.rotation_accel)
-        self.current_speed = self.current_speed + self.acceleration
+        self.current_speed = min(self.origin_speed, self.current_speed + self.acceleration)
         rotation_degrees = math.radians(self.get_hull_rotation())
         x_offset, y_offset = dasis_math.vector_look_at(rotation_degrees, self.current_speed)
         # y_offset = self.current_speed * math.cos(math.radians(self.get_hull_rotation()))

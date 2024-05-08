@@ -5,7 +5,7 @@ import pygame
 from basicsprite import GenericSprite
 from projectile import Projectile
 from sprite_movable import SpriteMovable
-from unit import TurretUnit
+from unit import TurretUnit, SoldierUnit
 from vehicle_base import Vehicle, TurretVehicle
 
 IMAGE_DIR = "data/images"
@@ -39,7 +39,7 @@ def bmp(x, y, sprite_group, all_sprites, ui_group, bullets_group, turret_color, 
                       bullets_group, sprite_group,
                       x, y, hull,
                       turret, turret_anchor_coords, turret_color,
-                      all_sprites, ui_group, 3, rotation_speed=1, name="БМП", damage=100, fire_seconds=0.1,
+                      all_sprites, ui_group, 10, rotation_speed=1, name="БМП", damage=100, fire_seconds=0.1,
                       attack_radius=500)
 
 
@@ -76,3 +76,10 @@ def bullet_sprite(bullets_group, all_sprites, x, y, max_speed, parent_object, sc
     return SpriteMovable(load_image("projectile.png"), "projectile", x, y, 10, 10,
                          bullets_group, all_sprites, appliable=True, max_speed=max_speed, origin_object=parent_object,
                          scale=scale)
+
+
+def soldier(x, y, sprite_group, all_sprites, ui_group, bullets_group, team_id=0, color="green"):
+    sprite = GenericSprite(load_image(f"soldier_{color}.png"), "turret", x, y, 22, 34, sprite_group,
+                           all_sprites)
+    return SoldierUnit(team_id, 30, sprite_group, bullets_group, x, y, sprite, all_sprites, ui_group,
+                       attack_radius=300, name="СОЛДАТ")

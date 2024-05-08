@@ -7,9 +7,8 @@ import pyconfig
 import dasis_math
 import factory
 from camera import Camera
-from basicsprite import GenericSprite
+from unit import SoldierUnit, TurretUnit
 from vehicle_base import Vehicle
-from waypoint import Waypoint
 
 
 def load_settings(path):
@@ -88,19 +87,40 @@ class Game:
                                     selected_units.append(unit)
                                 if not unit.selected and unit in selected_units:
                                     selected_units.remove(unit)
-                    if event.key == pyconfig.KEY_ORDER and not selected_anything:
+                    if event.key == pyconfig.KEY_ORDER and not selected_anything and selected_units:
                         length = len(selected_units)
                         mouse_pos = pygame.mouse.get_pos()
-                        for number, unit in list(enumerate(selected_units)):
-                            unit.deselect()
-                            selected_units.remove(unit)
-                            r = 0
-                            if length > 1:
-                                r = length * 17
-                            x, y = dasis_math.calculate_polygon_vertex_coordinates(length, r, number)
-                            x += mouse_pos[0] - self.screen_size[0] / 2
-                            y += mouse_pos[1] - self.screen_size[1] / 2
-                            unit.set_waypoint(x, y)
+                        ordinary_order = True
+                        if all(i.__class__ == SoldierUnit for i in selected_units):
+                            target_vehicle = None
+                            for vehicle in [i for i in units if i.team_id == self.player_team_id and
+                                                                issubclass(i.__class__, Vehicle)]:
+                                if vehicle.hull.check_click(mouse_pos):
+                                    ordinary_order = False
+                                    target_vehicle = vehicle
+                                    break
+                            if target_vehicle:
+                                for soldier in selected_units:
+                                    soldier.deselect()
+                                    selected_units.remove(soldier)
+                                    soldier.set_waypoint(vehicle=target_vehicle)
+                        elif len(selected_units) == 1 and selected_units[0].__class__ == TurretUnit and \
+                                selected_units[0].hull.check_click(mouse_pos):
+                            ordinary_order = False
+                            selected_units[0].disembark()
+                            selected_units[0].deselect()
+                            selected_units = []
+                        if ordinary_order:
+                            for number, unit in list(enumerate(selected_units)):
+                                unit.deselect()
+                                selected_units.remove(unit)
+                                r = 0
+                                if length > 1:
+                                    r = length * 17
+                                x, y = dasis_math.calculate_polygon_vertex_coordinates(length, r, number)
+                                x += mouse_pos[0] - self.screen_size[0] / 2
+                                y += mouse_pos[1] - self.screen_size[1] / 2
+                                unit.set_waypoint(x, y)
                 if event.type == pygame.KEYUP:
                     if event.key == pyconfig.KEY_LEFT:
                         pressed_lr[0] = False
@@ -183,7 +203,13 @@ class Game:
             factory.bmp(240, 80, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
                         self.colors[pyconfig.TURRET]),
             factory.bradley(70, 630, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
-                            self.colors[pyconfig.TURRET], 1)
+                            self.colors[pyconfig.TURRET], 1),
+            factory.soldier(-30, -30, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
+            factory.soldier(-30, -60, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
+            factory.soldier(-30, -90, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
+            factory.soldier(-30, -120, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
+            factory.soldier(-30, -150, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
+            factory.soldier(-30, -160, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group)
         ]
 
 

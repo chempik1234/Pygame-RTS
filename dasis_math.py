@@ -32,5 +32,5 @@ def distance(x, y, x1, y1):
     return math.sqrt((x1 - x) ** 2 + (y1 - y) ** 2)
 
 
-def vector_look_at(angle, multiplier: int = 1):
+def vector_look_at(angle, multiplier: float = 1):
     return multiplier * math.sin(angle), multiplier * math.cos(angle)
