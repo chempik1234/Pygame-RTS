@@ -36,6 +36,8 @@ class GenericSprite(BasicSprite):
         self.parent = parent
 
     def check_click(self, mouse) -> bool:
+        if mouse is None:
+            return True
         return self.rect.collidepoint(mouse)
 
     def move_to(self, x, y):

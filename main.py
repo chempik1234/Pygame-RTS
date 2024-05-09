@@ -1,4 +1,6 @@
+import math
 import os
+import random
 
 import pygame, sys, json
 
@@ -27,7 +29,7 @@ load_settings("settings.json")
 
 
 class Game:
-    def __init__(self, colors: dict, width, height, fps, camera_speed=30, player_team_id=0):
+    def __init__(self, colors: dict, width, height, fps, camera_speed=30):
         self.screen_size = (width, height)
         # tile_width = tile_height = 50
         pygame.init()
@@ -43,21 +45,50 @@ class Game:
         self.units_group = pygame.sprite.Group()
         self.ui_group = pygame.sprite.Group()
         self.bullets_group = pygame.sprite.Group()
+        self.obstacles_group = pygame.sprite.Group()
         self.sprite_group_list = [self.all_gameplay_sprites,
                                   self.units_group,
                                   self.ui_group]
         self.camera_speed = camera_speed
-        self.player_team_id = player_team_id
+        self.player_team_id = None
         self.seconds = None
 
-    def run(self):
+    def run_team_menu(self):
+        self.screen.fill(pygame.Color("red"))
+        self.screen.fill(pygame.Color("blue"), (self.screen_size[0] // 2, 0,
+                                                self.screen_size[0] // 2, self.screen_size[1]))
+        base_functions.draw_text(["Выбери сторону"], 20, self.screen_size[0] // 3,
+                                 pyconfig.FONTS[pyconfig.BIG], pygame.Color("Black"), self.screen)
+        base_functions.draw_text(["RU"], self.screen_size[1] // 2, self.screen_size[1] * 1 // 7,
+                                 pyconfig.FONTS[pyconfig.BIG], pygame.Color("Black"), self.screen)
+        base_functions.draw_text(["US"], self.screen_size[1] // 2, self.screen_size[1] * 6 // 7,
+                                 pyconfig.FONTS[pyconfig.BIG], pygame.Color("Black"), self.screen)
+        self.display.flip()
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    running = False
+                    if event.pos[0] <= self.screen_size[0] // 2:
+                        self.player_team_id = 0
+                    else:
+                        self.player_team_id = 1
+                if event.type == pygame.QUIT:
+                    running = False
+
+    def run_gameplay(self):
+        if self.player_team_id is None:
+            raise Exception("Сначала надо запустить .run_team_menu()")
         running = True
         # bmp = factory.bmp(10, 30, self.units_group, self.all_gameplay_sprites, self.ui_group)
         camera = Camera(self.screen_size[0], self.screen_size[1])
         camera_pos_sprite = factory.crosshair(self.units_group, self.all_gameplay_sprites, self.camera_speed)
         pressed_lr = [False, False]
         pressed_ud = [False, False]
+
         units = self.spawn_units()
+        self.spawn_environment()
+
         selected_units = []
         self.seconds = 0
         while running:
@@ -78,6 +109,17 @@ class Game:
                         pressed_lr[1] = True
 
                     selected_anything = False
+                    if event.key == pyconfig.KEY_SELECT_ALL_ON_SCREEN:
+                        for unit in units:
+                            if unit.team_id == self.player_team_id and \
+                                    0 < unit.get_x_on_screen() < self.screen_size[0] and \
+                                    0 < unit.get_y_on_screen() < self.screen_size[1]:
+                                selected = unit.select(invert=False)
+                                if selected:
+                                    selected_anything = True
+                                    selected_units.append(unit)
+                                if not unit.selected and unit in selected_units:
+                                    selected_units.remove(unit)
                     if event.key == pyconfig.KEY_SELECT:
                         for unit in units:
                             if unit.team_id == self.player_team_id:
@@ -111,13 +153,19 @@ class Game:
                             selected_units[0].deselect()
                             selected_units = []
                         if ordinary_order:
+                            row = cur_tens = 0
                             for number, unit in list(enumerate(selected_units)):
                                 unit.deselect()
                                 selected_units.remove(unit)
                                 r = 0
+                                cur_tens += 1
+                                if cur_tens >= row * 10:
+                                    row += 1
+                                    cur_tens = 0
                                 if length > 1:
-                                    r = length * 17
-                                x, y = dasis_math.calculate_polygon_vertex_coordinates(length, r, number)
+                                    r = math.sqrt(length * 50) * 1.5 + 30 * row
+                                x, y = dasis_math.calculate_polygon_vertex_coordinates(row * 10,
+                                                                                       r, number)
                                 x += mouse_pos[0] - self.screen_size[0] / 2
                                 y += mouse_pos[1] - self.screen_size[1] / 2
                                 unit.set_waypoint(x, y)
@@ -144,6 +192,7 @@ class Game:
         self.screen.fill(self.colors["GRASS"])
         self.bullets_group.draw(self.screen)
         self.units_group.draw(self.screen)
+        self.obstacles_group.draw(self.screen)
         self.ui_group.draw(self.screen)
         camera.update(camera_pos_sprite)
         for sprite in self.all_gameplay_sprites:
@@ -157,26 +206,26 @@ class Game:
         """ ### RED STRIPES """
         STRIPE_WIDTH = 0.025
         for enemy in enemy_units:
-            if enemy.hull.rect.y < 0:
+            if enemy.get_y_on_screen() < 0:
                 self.screen.fill(pygame.Color("red"), (0, 0,
                                                        self.screen_size[0],
                                                        int(self.screen_size[1] * STRIPE_WIDTH)))
                 break
         for enemy in enemy_units:
-            if enemy.hull.rect.y > self.screen_size[1]:
+            if enemy.get_y_on_screen() > self.screen_size[1]:
                 self.screen.fill(pygame.Color("red"), (0,
                                                        int(self.screen_size[1] * (1 - STRIPE_WIDTH)),
                                                        self.screen_size[0],
                                                        int(self.screen_size[1] * STRIPE_WIDTH)))
                 break
         for enemy in enemy_units:
-            if enemy.hull.rect.x < 0:
+            if enemy.get_x_on_screen() < 0:
                 self.screen.fill(pygame.Color("red"), (0, 0,
                                                        int(self.screen_size[0] * STRIPE_WIDTH),
                                                        self.screen_size[1]))
                 break
         for enemy in enemy_units:
-            if enemy.hull.rect.x > self.screen_size[0]:
+            if enemy.get_x_on_screen() > self.screen_size[0]:
                 self.screen.fill(pygame.Color("red"), (int(self.screen_size[0] * (1 - STRIPE_WIDTH)),
                                                        0,
                                                        int(self.screen_size[0] * STRIPE_WIDTH),
@@ -188,8 +237,14 @@ class Game:
                           int(self.screen_size[1] * 0.01),
                           int(self.screen_size[0] * 0.2),
                           int(self.screen_size[1] * 0.3)))
+        selected_dict = {}
+        for unit in selected_units:
+            if selected_dict.get(unit.name):
+                selected_dict[unit.name] += 1
+            else:
+                selected_dict[unit.name] = 1
         base_functions.draw_text(
-            ["ВЫБРАНЫ:"] + [i.name for i in selected_units] +
+            ["ВЫБРАНЫ:"] + [f"{i}: {j}x" for i, j in selected_dict.items()] +
             [f"{len(selected_units)} / {len(allied_units)}"],
             10,
             self.screen_size[0] * 0.05 + 10,
@@ -197,22 +252,58 @@ class Game:
             self.colors["PRIMARY"], self.screen)
 
     def spawn_units(self):
-        return [
-            factory.bmp(10, 30, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
-                        self.colors[pyconfig.TURRET]),
-            factory.t80(240, 80, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
-                        self.colors[pyconfig.TURRET]),
-            factory.bradley(70, 630, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
-                            self.colors[pyconfig.TURRET], 1),
-            factory.soldier(-30, -30, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
-            factory.soldier(-30, -60, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
-            factory.soldier(-30, -90, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
-            factory.soldier(-30, -120, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
-            factory.soldier(-30, -150, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group),
-            factory.soldier(-30, -160, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group)
-        ]
+        res = []
+        for i in range(12):
+            res.append(factory.bmp(40 * i, 0, self.units_group, self.all_gameplay_sprites, self.ui_group,
+                                   self.obstacles_group,
+                                   self.bullets_group, self.colors[pyconfig.TURRET]))
+        for i in range(6):
+            res.append(factory.t80(80 * i, 80, self.units_group, self.all_gameplay_sprites, self.ui_group,
+                                   self.obstacles_group,
+                                   self.bullets_group, self.colors[pyconfig.TURRET]))
+        for i in range(6):
+            for col in range(2):
+                for row in range(6):
+                    res.append(factory.soldier(80 * i + 30 + 20 * col,
+                                               80 + 30 * row, self.units_group, self.all_gameplay_sprites,
+                                               self.ui_group,
+                                               self.obstacles_group, self.bullets_group))
+
+        # ENEMIES
+
+        for i in range(12):
+            res.append(factory.bradley(40 * i, -1160, self.units_group, self.all_gameplay_sprites, self.ui_group,
+                                       self.obstacles_group,
+                                       self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
+        for i in range(6):
+            res.append(factory.abrams(80 * i, -1080, self.units_group, self.all_gameplay_sprites, self.ui_group,
+                                      self.obstacles_group,
+                                      self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
+        for i in range(6):
+            for col in range(2):
+                for row in range(6):
+                    res.append(factory.soldier(80 * i + 30 + 20 * col,
+                                               -1080 + 30 * row, self.units_group, self.all_gameplay_sprites,
+                                               self.ui_group,
+                                               self.obstacles_group,self.bullets_group, team_id=1, color="sand"))
+        return res
+
+    def spawn_environment(self):
+        i = 0
+        while i < 10:
+            house = factory.house(random.randint(-1000, 1000), random.randint(-800, -100), self.bullets_group,
+                                  self.obstacles_group, self.all_gameplay_sprites)
+            i += 1
+            for j in self.obstacles_group:
+                if j == house.sprite:
+                    continue
+                if pygame.sprite.collide_mask(j, house.sprite):
+                    house.destroy()
+                    i -= 1
+                    break
 
 
 if __name__ == '__main__':
     game = Game(COLORS, WIDTH, HEIGHT, FPS)
-    game.run()
+    game.run_team_menu()
+    game.run_gameplay()

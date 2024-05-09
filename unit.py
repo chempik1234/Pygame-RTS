@@ -20,6 +20,9 @@ class Unit:
         self.target = None
         self.alive = True
 
+    def get_sprite(self):
+        pass
+
     def take_damage(self, damage):
         self.hp -= damage
         if self.hp <= 0:
@@ -43,7 +46,7 @@ class TurretUnit(TurretVehicle, Unit):
                  bullets_group, units_group,
                  x, y, hull_generic_sprite: GenericSprite,
                  turret: GenericSprite, turret_anchor_coords: tuple, turret_color,
-                 all_sprites, ui_sprite_group, speed: float = 3, rotation_speed: float = .1,
+                 all_sprites, ui_sprite_group, obstacles_group, speed: float = 3, rotation_speed: float = .1,
                  acceleration_speed=.1, name="unit", damage=1, fire_seconds=0.1, attack_radius=500,
                  soldiers_max=6
                  ):
@@ -58,6 +61,10 @@ class TurretUnit(TurretVehicle, Unit):
         self.past_seconds = self.lasted_seconds = 0
         self.damage = damage
         self.units_group = units_group
+        self.obstacles_group = obstacles_group
+
+    def get_sprite(self):
+        return self.hull
 
     def update(self, units_list, seconds):
         if not self.alive:
@@ -65,6 +72,16 @@ class TurretUnit(TurretVehicle, Unit):
         # if self.team_id == 1:
         #     print(self.target, self.lasted_seconds, self.fire_seconds)
         TurretVehicle.update(self, units_list, seconds)
+        if self.acceleration > 0:
+            # BRAKING WHEN NEAR UNITS
+            forward_x, forward_y = dasis_math.vector_look_at(self.get_hull_rotation(), -100)
+            forward_x += self.get_x_on_screen()
+            forward_y += self.get_y_on_screen()
+            for house in self.obstacles_group:
+                if house.check_click((forward_x, forward_y)):
+                    self.set_speed(0)
+                    self.set_acceleration(0)
+                    break
         self.update_targets(units_list)
         self.lasted_seconds += seconds - self.past_seconds
         self.past_seconds = seconds
@@ -74,7 +91,8 @@ class TurretUnit(TurretVehicle, Unit):
             else:
                 if self.lasted_seconds > self.fire_seconds:
                     Projectile(self.turret.origin_x, self.turret.origin_y, self.all_sprites, self.units_group,
-                               self.bullets_group, self.target.get_xy(), self.team_id, self.damage)
+                               self.obstacles_group, self.bullets_group, self.target.get_xy(), self.team_id,
+                               self.damage)
                     self.lasted_seconds %= self.fire_seconds
                 # factory.bullet_sprite(self.bullets_group, self.all_sprites,
                 #                       *base_functions.find_color(self.turret.image))
@@ -140,7 +158,7 @@ class SoldierUnit(Unit, Soldier):
     def __init__(self,
                  team_id: int, max_hp: int,
                  units_group, bullets_group,
-                 x, y, sprite, all_sprites, ui_sprite_group,
+                 x, y, sprite, all_sprites, ui_sprite_group, obstacles_group,
                  speed: float = 2, rotation_speed: float = 3, acceleration_speed=.1, name="unit", damage=2,
                  attack_radius: int = 100, fire_seconds: float = 0.1,
                  ):
@@ -149,11 +167,15 @@ class SoldierUnit(Unit, Soldier):
         Unit.__init__(self, team_id, max_hp, fire_seconds=fire_seconds, attack_radius=attack_radius)
         self.sprite.parent = self
         self.bullets_group = bullets_group
+        self.obstacles_group = obstacles_group
         self.past_seconds = self.lasted_seconds = 0
         self.damage = damage
         self.units_group = units_group
         self.rotating_to_target = True
         self.vehicle = None
+
+    def get_sprite(self):
+        return self.sprite
 
     def update(self, units_list, seconds):
         if not self.alive:
@@ -161,6 +183,15 @@ class SoldierUnit(Unit, Soldier):
         # if self.team_id == 1:
         #     print(self.target, self.lasted_seconds, self.fire_seconds)
         Soldier.update(self, units_list, seconds)
+        # BRAKING WHEN NEAR UNITS
+        forward_x, forward_y = dasis_math.vector_look_at(self.get_sprite_rotation(), -100)
+        forward_x += self.get_x()
+        forward_y += self.get_y()
+        for house in self.obstacles_group:
+            if house.check_click((forward_x, forward_y)):
+                self.press_break()
+                break
+
         self.update_targets(units_list)
         self.lasted_seconds += seconds - self.past_seconds
         self.past_seconds = seconds
@@ -170,6 +201,7 @@ class SoldierUnit(Unit, Soldier):
             else:
                 if self.lasted_seconds > self.fire_seconds:
                     Projectile(self.sprite.origin_x, self.sprite.origin_y, self.all_sprites, self.units_group,
+                               self.obstacles_group,
                                self.bullets_group, self.target.get_xy(), self.team_id, self.damage)
                     self.lasted_seconds %= self.fire_seconds
                 # factory.bullet_sprite(self.bullets_group, self.all_sprites,
@@ -177,6 +209,13 @@ class SoldierUnit(Unit, Soldier):
                 self.rotate_to_target()
         if self.vehicle:
             self.sprite.move_to(self.vehicle.get_x(), self.vehicle.get_y())
+
+    def select(self, mouse=None, invert=True):
+        selected = super().select(mouse, invert=invert)
+        if self.vehicle:
+            selected = False
+            self.deselect()
+        return selected
 
     def arrive_to_waypoint(self):
         super().arrive_to_waypoint()

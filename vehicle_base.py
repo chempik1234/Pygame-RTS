@@ -38,6 +38,12 @@ class Vehicle:
     def get_y(self):
         return self.hull.origin_y
 
+    def get_x_on_screen(self):
+        return self.hull.rect.x
+
+    def get_y_on_screen(self):
+        return self.hull.rect.y
+
     def get_w(self):
         return self.hull.rect.w
 
@@ -109,6 +115,17 @@ class Vehicle:
             self.past_waypoint_distance = self.get_waypoint_distance()
         else:
             self.press_break()
+        # BRAKING WHEN NEAR UNITS
+        forward_x, forward_y = dasis_math.vector_look_at(self.get_hull_rotation(), -100)
+        forward_x += self.get_x_on_screen()
+        forward_y += self.get_y_on_screen()
+        for unit in units_list:
+            if unit is self:
+                continue
+            if unit.get_sprite().check_click((forward_x, forward_y)):
+                self.set_acceleration(0)
+                self.set_speed(0)
+                break
 
     def get_waypoint_distance(self):
         if not self.waypoint:
@@ -116,13 +133,17 @@ class Vehicle:
         return dasis_math.distance(self.hull.origin_x, self.hull.origin_y,
                                    self.waypoint.sprite.origin_x, self.waypoint.sprite.origin_y)
 
-    def select(self, mouse):
+    def select(self, mouse=None, invert=True):
         """
+        :param invert: defines if .selected needs to be inverted or simply set True
         :param mouse: tuple (x, y)
         :return: True if selected was set to True during the last method call or False in every other case
         """
         if self.hull.check_click(mouse):
-            self.selected = not self.selected
+            if invert:
+                self.selected = not self.selected
+            else:
+                self.selected = True
             return self.selected
         return False
 

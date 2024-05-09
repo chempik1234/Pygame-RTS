@@ -4,11 +4,13 @@ import factory
 
 
 class Projectile:
-    def __init__(self, origin_x, origin_y, all_sprites, units_group, bullets_group, target_point: tuple,
+    def __init__(self, origin_x, origin_y, all_sprites, units_group, obstacles_group, bullets_group, target_point: tuple,
                  team_id: int, damage: int = 1, speed: int = 20, lifetime: float = 2):
         self.sprite = factory.bullet_sprite(bullets_group, all_sprites, origin_x, origin_y, max_speed=speed,
-                                            parent_object=self, scale=min(max(1 + (damage - 100) / 300, .5), 3))
+                                            parent_object=self, scale=min(max(1 + (damage - 100) / 300, .5), 2))
+        self.sprite.parent = self
         self.units_group = units_group
+        self.obstacles_group = obstacles_group
         self.team_id = team_id
         self.damage = damage
         self.target_point = target_point
@@ -32,6 +34,11 @@ class Projectile:
         self.sprite.update()
         for i in self.units_group:
             if pygame.sprite.collide_mask(self.sprite, i) and i.parent is not None and i.parent.team_id != self.team_id:
+                i.parent.take_damage(self.damage)
+                self.destroy()
+                break
+        for i in self.obstacles_group:
+            if pygame.sprite.collide_mask(self.sprite, i) and i.parent is not None:
                 i.parent.take_damage(self.damage)
                 self.destroy()
                 break

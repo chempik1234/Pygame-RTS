@@ -2,6 +2,7 @@ import math
 
 import dasis_math
 import factory
+from vehicle_base import Vehicle
 from waypoint import Waypoint
 
 
@@ -31,6 +32,12 @@ class Soldier:
 
     def get_y(self):
         return self.sprite.origin_y
+
+    def get_x_on_screen(self):
+        return self.sprite.rect.x
+
+    def get_y_on_screen(self):
+        return self.sprite.rect.y
 
     def get_w(self):
         return self.sprite.rect.w
@@ -98,6 +105,17 @@ class Soldier:
             self.past_waypoint_distance = self.get_waypoint_distance()
         else:
             self.press_break()
+        # BRAKING WHEN NEAR UNITS
+        forward_x, forward_y = dasis_math.vector_look_at(self.get_sprite_rotation(), -100)
+        forward_x += self.get_x_on_screen()
+        forward_y += self.get_y_on_screen()
+        for unit in units_list:
+            if unit is self:
+                continue
+            if unit.get_sprite().check_click((forward_x, forward_y)):
+                self.set_acceleration(0)
+                self.set_speed(0)
+                break
 
     def arrive_to_waypoint(self):
         self.set_rotation_multiplier(0)
@@ -111,13 +129,17 @@ class Soldier:
         return dasis_math.distance(self.sprite.origin_x, self.sprite.origin_y,
                                    self.waypoint.get_x(), self.waypoint.get_y())
 
-    def select(self, mouse):
+    def select(self, mouse=None, invert=True):
         """
+        :param invert: defines if .selected needs to be inverted or simply set True
         :param mouse: tuple (x, y)
         :return: True if selected was set to True during the last method call or False in every other case
         """
         if self.sprite.check_click(mouse):
-            self.selected = not self.selected
+            if invert:
+                self.selected = not self.selected
+            else:
+                self.selected = True
             return self.selected
         return False
 
@@ -125,7 +147,7 @@ class Soldier:
         self.selected = False
 
     def set_waypoint(self, x=None, y=None, vehicle=None):
-        if vehicle:
+        if vehicle or issubclass(self.waypoint.__class__, Vehicle):
             self.waypoint = vehicle
         else:
             if self.waypoint:

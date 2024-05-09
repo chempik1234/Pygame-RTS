@@ -6,6 +6,7 @@ KEY_LEFT = pygame.K_a
 KEY_RIGHT = pygame.K_d
 KEY_UP = pygame.K_w
 KEY_DOWN = pygame.K_s
+KEY_SELECT_ALL_ON_SCREEN = pygame.K_x
 SMALL, MEDIUM, BIG = "SMALL", "MEDIUM", "BIG"
 FONTS = {SMALL: 24,
          MEDIUM: 36,
