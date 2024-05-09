@@ -1,5 +1,7 @@
 import math
 
+import pygame
+
 import dasis_math
 import factory
 from vehicle_base import Vehicle
@@ -106,16 +108,32 @@ class Soldier:
         else:
             self.press_break()
         # BRAKING WHEN NEAR UNITS
-        forward_x, forward_y = dasis_math.vector_look_at(self.get_sprite_rotation(), -100)
-        forward_x += self.get_x_on_screen()
-        forward_y += self.get_y_on_screen()
-        for unit in units_list:
-            if unit is self:
-                continue
-            if unit.get_sprite().check_click((forward_x, forward_y)):
-                self.set_acceleration(0)
-                self.set_speed(0)
-                break
+        # forward_x, forward_y = dasis_math.vector_look_at(math.radians(self.get_sprite_rotation()), -100)
+        # forward_x += self.get_x_on_screen()
+        # forward_y += self.get_y_on_screen()
+        # factory.waypoint_sprite(self.ui_group, self.all_sprites, forward_x, forward_y)
+        # for unit in units_list:
+        #     if unit is self:
+        #         continue
+        #     if pygame.sprite.collide_mask(unit.get_sprite(), self.sprite):
+        #         self.set_rotation_multiplier(0)
+        #         self.set_acceleration(0)
+        #         self.set_speed(0)
+        #         if pygame.sprite.collide_mask(unit.get_sprite(), self.sprite) and not self.waypoint:
+        #             self.move_backwards(unit.get_xy())
+        #         break
+
+    def move_backwards(self, xy=None):
+        if xy is None:
+            x, y = dasis_math.vector_look_at(self.get_sprite_rotation(), 2)
+        else:
+            x = self.sprite.origin_x - xy[0]
+            y = self.sprite.origin_y - xy[1]
+            max_val = max(x, y)
+            if max_val != 0:
+                x, y = x / max_val, y / max_val
+        self.sprite.origin_x += x
+        self.sprite.origin_y += y
 
     def arrive_to_waypoint(self):
         self.set_rotation_multiplier(0)
@@ -139,7 +157,9 @@ class Soldier:
             if invert:
                 self.selected = not self.selected
             else:
+                s = not self.selected
                 self.selected = True
+                return s
             return self.selected
         return False
 

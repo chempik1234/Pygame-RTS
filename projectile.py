@@ -35,12 +35,14 @@ class Projectile:
         for i in self.units_group:
             if pygame.sprite.collide_mask(self.sprite, i) and i.parent is not None and i.parent.team_id != self.team_id:
                 i.parent.take_damage(self.damage)
-                self.destroy()
+                if i.parent.alive:
+                    self.destroy()
                 break
         for i in self.obstacles_group:
             if pygame.sprite.collide_mask(self.sprite, i) and i.parent is not None:
                 i.parent.take_damage(self.damage)
-                self.destroy()
+                if i.parent.alive:
+                    self.destroy()
                 break
         if self.past_seconds is not None:
             self.total_seconds += seconds - self.past_seconds

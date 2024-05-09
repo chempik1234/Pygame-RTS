@@ -58,6 +58,13 @@ def bradley(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_
                       soldiers_max=6, attack_radius=550)
 
 
+def apc(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id=0):
+    if team_id == 0:
+        return bmp(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id)
+    else:
+        return bradley(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id)
+
+
 def t80(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id=0):
     hull = GenericSprite(load_image("t80\\hull.png"), "hull", x, y, 11, 26, sprite_group,
                          all_sprites)
@@ -68,8 +75,8 @@ def t80(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_grou
                       bullets_group, sprite_group,
                       x, y, hull,
                       turret, turret_anchor_coords, turret_color,
-                      all_sprites, ui_group, obstacles_group, 3, rotation_speed=1, name="T80U", damage=4000, fire_seconds=5,
-                      soldiers_max=0, attack_radius=1000)
+                      all_sprites, ui_group, obstacles_group, 3, rotation_speed=1, name="T80U", damage=4000,
+                      fire_seconds=5, soldiers_max=0, attack_radius=1000)
 
 
 def abrams(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id=0):
@@ -82,8 +89,15 @@ def abrams(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_g
                       bullets_group, sprite_group,
                       x, y, hull,
                       turret, turret_anchor_coords, turret_color,
-                      all_sprites, ui_group, obstacles_group, 2.8, rotation_speed=1.5, name="ABRAMS", damage=4000, fire_seconds=8,
-                      soldiers_max=0, attack_radius=1000)
+                      all_sprites, ui_group, obstacles_group, 2.8, rotation_speed=1.5, name="ABRAMS", damage=4000,
+                      fire_seconds=10, soldiers_max=0, attack_radius=1000)
+
+
+def tank(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id=0):
+    if team_id == 0:
+        return t80(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id)
+    else:
+        return abrams(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, turret_color, team_id)
 
 
 def crosshair(sprite_group, all_sprites, max_speed=1):
@@ -107,7 +121,10 @@ def bullet_sprite(bullets_group, all_sprites, x, y, max_speed, parent_object, sc
                          scale=scale)
 
 
-def soldier(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, team_id=0, color="green"):
+def soldier(x, y, sprite_group, all_sprites, ui_group, obstacles_group, bullets_group, team_id=0):
+    color = "green"
+    if team_id != 0:
+        color = "sand"
     sprite = GenericSprite(load_image(f"soldier_{color}.png"), "turret", x, y, 22, 34, sprite_group,
                            all_sprites)
     return SoldierUnit(team_id, 3, sprite_group, bullets_group, x, y, sprite, all_sprites, ui_group, obstacles_group,

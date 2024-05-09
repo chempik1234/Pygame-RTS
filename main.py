@@ -86,15 +86,16 @@ class Game:
         pressed_lr = [False, False]
         pressed_ud = [False, False]
 
-        units = self.spawn_units()
         self.spawn_environment()
+        units = self.spawn_units()
 
         selected_units = []
         self.seconds = 0
         while running:
             units = [i for i in units if i.alive]
             selected_units = [i for i in selected_units if i.alive]
-            self.seconds += (self.clock.tick(self.fps) / 1000) % 1800
+            tick = self.clock.tick(self.fps)
+            self.seconds += (tick / 1000) % 1800
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -186,9 +187,9 @@ class Game:
                 if bullet_sprite.parent:
                     bullet_sprite.parent.update(self.seconds)
             camera_pos_sprite.update()
-            self.render(camera, units, selected_units, camera_pos_sprite)
+            self.render(camera, units, selected_units, camera_pos_sprite, tick)
 
-    def render(self, camera, units, selected_units, camera_pos_sprite):
+    def render(self, camera, units, selected_units, camera_pos_sprite, tick):
         self.screen.fill(self.colors["GRASS"])
         self.bullets_group.draw(self.screen)
         self.units_group.draw(self.screen)
@@ -197,12 +198,33 @@ class Game:
         camera.update(camera_pos_sprite)
         for sprite in self.all_gameplay_sprites:
             camera.apply(sprite)
-        self.render_ui(units, selected_units)
+        self.render_ui(units, selected_units, tick)
         self.display.flip()
 
-    def render_ui(self, units, selected_units):
+    def render_ui(self, units, selected_units, tick):
         allied_units = [i for i in units if i.team_id == self.player_team_id]
         enemy_units = [i for i in units if i.team_id != self.player_team_id]
+        """ ### HP """
+        for unit in selected_units + enemy_units:
+            if not unit.get_sprite().alive():
+                continue
+            if unit.team_id == self.player_team_id:
+                color = "green"
+                if isinstance(unit, TurretUnit):
+                    base_functions.draw_text([f"{len(unit.soldiers)}/{unit.soldiers_max}"],
+                                             unit.get_y_on_screen() - 40, unit.get_x_on_screen(),
+                                             pyconfig.FONTS[pyconfig.SMALL], pygame.Color("black"), self.screen)
+                    base_functions.draw_text([f"{len(unit.soldiers)}/{unit.soldiers_max}"],
+                                             unit.get_y_on_screen() - 41, unit.get_x_on_screen(),
+                                             pyconfig.FONTS[pyconfig.SMALL], pygame.Color("white"), self.screen)
+            else:
+                color = "red"
+            self.screen.fill(pygame.Color("black"), (unit.get_x_on_screen(),
+                                                     unit.get_y_on_screen() - 20,
+                                                     unit.get_w(), 5))
+            self.screen.fill(pygame.Color(color), (unit.get_x_on_screen() + 1,
+                                                   unit.get_y_on_screen() - 19,
+                                                   unit.hp / unit.max_hp * (unit.get_w() - 2), 3))
         """ ### RED STRIPES """
         STRIPE_WIDTH = 0.025
         for enemy in enemy_units:
@@ -250,51 +272,101 @@ class Game:
             self.screen_size[0] * 0.05 + 10,
             pyconfig.FONTS[pyconfig.SMALL],
             self.colors["PRIMARY"], self.screen)
+        #
+        if not enemy_units:
+            base_functions.draw_text(["МЕСТНОСТЬ ЗАЧИЩЕНА!"], self.screen_size[1] // 2, self.screen_size[0] // 3,
+                                     pyconfig.FONTS[pyconfig.BIG], pygame.Color("black"), self.screen)
+        base_functions.draw_text([f"FPS: {int(1000 / tick)}"],
+                                 0, 0, pyconfig.FONTS[pyconfig.SMALL], pygame.Color("black"), self.screen)
 
     def spawn_units(self):
         res = []
         for i in range(12):
-            res.append(factory.bmp(40 * i, 0, self.units_group, self.all_gameplay_sprites, self.ui_group,
+            res.append(factory.apc(40 * i, 0, self.units_group, self.all_gameplay_sprites, self.ui_group,
                                    self.obstacles_group,
-                                   self.bullets_group, self.colors[pyconfig.TURRET]))
+                                   self.bullets_group, self.colors[pyconfig.TURRET], team_id=self.player_team_id))
         for i in range(6):
-            res.append(factory.t80(80 * i, 80, self.units_group, self.all_gameplay_sprites, self.ui_group,
-                                   self.obstacles_group,
-                                   self.bullets_group, self.colors[pyconfig.TURRET]))
+            res.append(factory.tank(80 * i, 80, self.units_group, self.all_gameplay_sprites, self.ui_group,
+                                    self.obstacles_group,
+                                    self.bullets_group, self.colors[pyconfig.TURRET], team_id=self.player_team_id))
         for i in range(6):
             for col in range(2):
                 for row in range(6):
                     res.append(factory.soldier(80 * i + 30 + 20 * col,
                                                80 + 30 * row, self.units_group, self.all_gameplay_sprites,
                                                self.ui_group,
-                                               self.obstacles_group, self.bullets_group))
-
+                                               self.obstacles_group, self.bullets_group, team_id=self.player_team_id))
         # ENEMIES
-
-        for i in range(12):
-            res.append(factory.bradley(40 * i, -1160, self.units_group, self.all_gameplay_sprites, self.ui_group,
-                                       self.obstacles_group,
-                                       self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
-        for i in range(6):
-            res.append(factory.abrams(80 * i, -1080, self.units_group, self.all_gameplay_sprites, self.ui_group,
+        i = 0
+        while i < 12:
+            enemy_bmp = factory.apc(random.randint(-1000, 1000), random.randint(-2000, -1000), self.units_group,
+                                    self.all_gameplay_sprites, self.ui_group,
+                                    self.obstacles_group,
+                                    self.bullets_group, self.colors[pyconfig.TURRET], team_id=1 - self.player_team_id)
+            i += 1
+            for j in self.all_gameplay_sprites:
+                if j == enemy_bmp.hull or j == enemy_bmp.turret:
+                    continue
+                if pygame.sprite.collide_mask(j, enemy_bmp.get_sprite()):
+                    enemy_bmp.die()
+                    i -= 1
+                    break
+            res.append(enemy_bmp)
+        i = 0
+        while i < 12:
+            enemy_tank = factory.tank(random.randint(-1000, 1000), random.randint(-2000, -1000),
+                                      self.units_group, self.all_gameplay_sprites, self.ui_group,
                                       self.obstacles_group,
-                                      self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
-        for i in range(6):
-            for col in range(2):
-                for row in range(6):
-                    res.append(factory.soldier(80 * i + 30 + 20 * col,
-                                               -1080 + 30 * row, self.units_group, self.all_gameplay_sprites,
-                                               self.ui_group,
-                                               self.obstacles_group,self.bullets_group, team_id=1, color="sand"))
+                                      self.bullets_group, self.colors[pyconfig.TURRET], team_id=1 - self.player_team_id)
+            i += 1
+            for j in self.all_gameplay_sprites:
+                if j == enemy_tank.hull or j == enemy_tank.turret:
+                    continue
+                if pygame.sprite.collide_mask(j, enemy_tank.get_sprite()):
+                    enemy_tank.die()
+                    i -= 1
+                    break
+            res.append(enemy_tank)
+        i = 0
+        while i < 72:
+            enemy_soldier = factory.soldier(random.randint(-1000, 1000), random.randint(-2000, -1000), self.units_group,
+                                            self.all_gameplay_sprites,
+                                            self.ui_group,
+                                            self.obstacles_group, self.bullets_group, team_id=1 - self.player_team_id)
+            i += 1
+            for j in self.all_gameplay_sprites:
+                if j == enemy_soldier.sprite:
+                    continue
+                if pygame.sprite.collide_mask(j, enemy_soldier.get_sprite()):
+                    enemy_soldier.die()
+                    i -= 1
+                    break
+            res.append(enemy_soldier)
+
+        # for i in range(12):
+        #     res.append(factory.bradley(40 * i, -1160, self.units_group, self.all_gameplay_sprites, self.ui_group,
+        #                                self.obstacles_group,
+        #                                self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
+        # for i in range(6):
+        #     res.append(factory.abrams(80 * i, -1080, self.units_group, self.all_gameplay_sprites, self.ui_group,
+        #                               self.obstacles_group,
+        #                               self.bullets_group, self.colors[pyconfig.TURRET], team_id=1))
+        # for i in range(6):
+        #     for col in range(2):
+        #         for row in range(6):
+        #             res.append(factory.soldier(80 * i + 30 + 20 * col,
+        #                                        -1080 + 30 * row, self.units_group, self.all_gameplay_sprites,
+        #                                        self.ui_group,
+        #                                        self.obstacles_group,self.bullets_group, team_id=1, color="sand"))
         return res
 
     def spawn_environment(self):
         i = 0
-        while i < 10:
-            house = factory.house(random.randint(-1000, 1000), random.randint(-800, -100), self.bullets_group,
+        while i < 200:
+            house = factory.house(random.randint(-5000, 5000), random.randint(-2000, -100), self.bullets_group,
                                   self.obstacles_group, self.all_gameplay_sprites)
             i += 1
-            for j in self.obstacles_group:
+            for j in self.all_gameplay_sprites:
                 if j == house.sprite:
                     continue
                 if pygame.sprite.collide_mask(j, house.sprite):

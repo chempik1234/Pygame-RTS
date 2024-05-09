@@ -4,21 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2b23944e-4bb5-48d7-a1b8-f5f32fa1df80" name="Changes" comment="t80, soldiers_max fix">
-      <change afterPath="$PROJECT_DIR$/data/images/abrams/hull.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/abrams/turret.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/bradley/hull.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/bradley/turret.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/props/0.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/props/1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/images/props/2.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/obstacle.py" afterDir="false" />
+    <list default="true" id="2b23944e-4bb5-48d7-a1b8-f5f32fa1df80" name="Changes" comment="sus">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/basicsprite.py" beforeDir="false" afterPath="$PROJECT_DIR$/basicsprite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/images/props/1.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/images/props/1.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factory.py" beforeDir="false" afterPath="$PROJECT_DIR$/factory.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obstacle.py" beforeDir="false" afterPath="$PROJECT_DIR$/obstacle.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/projectile.py" beforeDir="false" afterPath="$PROJECT_DIR$/projectile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyconfig.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/soldier.py" beforeDir="false" afterPath="$PROJECT_DIR$/soldier.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/unit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vehicle_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vehicle_base.py" afterDir="false" />
@@ -126,13 +118,22 @@
       <option name="project" value="LOCAL" />
       <updated>1715233836624</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="sus">
+      <option name="closed" value="true" />
+      <created>1715256912489</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1715256912490</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Working without soldiers, first, init" />
     <MESSAGE value="Working soldiers with bmps" />
     <MESSAGE value="t80, soldiers_max fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="t80, soldiers_max fix" />
+    <MESSAGE value="sus" />
+    <option name="LAST_COMMIT_MESSAGE" value="sus" />
   </component>
 </project>

@@ -20,6 +20,7 @@ class Unit:
         self.target = None
         self.alive = True
 
+
     def get_sprite(self):
         pass
 
@@ -74,13 +75,16 @@ class TurretUnit(TurretVehicle, Unit):
         TurretVehicle.update(self, units_list, seconds)
         if self.acceleration > 0:
             # BRAKING WHEN NEAR UNITS
-            forward_x, forward_y = dasis_math.vector_look_at(self.get_hull_rotation(), -100)
-            forward_x += self.get_x_on_screen()
-            forward_y += self.get_y_on_screen()
+            # forward_x, forward_y = dasis_math.vector_look_at(math.radians(self.get_hull_rotation()), -100)
+            # forward_x += self.get_x_on_screen()
+            # forward_y += self.get_y_on_screen()
             for house in self.obstacles_group:
-                if house.check_click((forward_x, forward_y)):
+                if pygame.sprite.collide_mask(house, self.get_sprite()):
+                    self.set_rotation_multiplier(0)
                     self.set_speed(0)
                     self.set_acceleration(0)
+                    if pygame.sprite.collide_mask(house, self.get_sprite()):
+                        self.move_backwards((house.origin_x, house.origin_y))
                     break
         self.update_targets(units_list)
         self.lasted_seconds += seconds - self.past_seconds
@@ -183,14 +187,19 @@ class SoldierUnit(Unit, Soldier):
         # if self.team_id == 1:
         #     print(self.target, self.lasted_seconds, self.fire_seconds)
         Soldier.update(self, units_list, seconds)
-        # BRAKING WHEN NEAR UNITS
-        forward_x, forward_y = dasis_math.vector_look_at(self.get_sprite_rotation(), -100)
-        forward_x += self.get_x()
-        forward_y += self.get_y()
-        for house in self.obstacles_group:
-            if house.check_click((forward_x, forward_y)):
-                self.press_break()
-                break
+        if self.waypoint:
+            # BRAKING WHEN NEAR UNITS
+            # forward_x, forward_y = dasis_math.vector_look_at(math.radians(self.get_sprite_rotation()), -100)
+            # forward_x += self.get_x()
+            # forward_y += self.get_y()
+            for house in self.obstacles_group:
+                if pygame.sprite.collide_mask(house, self.get_sprite()):
+                    self.set_rotation_multiplier(0)
+                    self.set_speed(0)
+                    self.set_acceleration(0)
+                    if pygame.sprite.collide_mask(house, self.get_sprite()):
+                        self.move_backwards((house.origin_x, house.origin_y))
+                    break
 
         self.update_targets(units_list)
         self.lasted_seconds += seconds - self.past_seconds

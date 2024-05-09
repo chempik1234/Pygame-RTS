@@ -8,6 +8,7 @@ class Obstacle:
         self.bullets_group = bullets_group
         self.obstacles_group = obstacles_group
         self.health = health
+        self.alive = True
 
     def take_damage(self, damage):
         self.health -= damage
@@ -15,4 +16,5 @@ class Obstacle:
             self.destroy()
 
     def destroy(self):
+        self.alive = False
         self.sprite.kill()
