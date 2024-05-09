@@ -44,12 +44,13 @@ class TurretUnit(TurretVehicle, Unit):
                  x, y, hull_generic_sprite: GenericSprite,
                  turret: GenericSprite, turret_anchor_coords: tuple, turret_color,
                  all_sprites, ui_sprite_group, speed: float = 3, rotation_speed: float = .1,
-                 acceleration_speed=.1, name="unit", damage=1, fire_seconds=0.1, attack_radius=500
+                 acceleration_speed=.1, name="unit", damage=1, fire_seconds=0.1, attack_radius=500,
+                 soldiers_max=6
                  ):
         TurretVehicle.__init__(self, x, y, hull_generic_sprite,
                                turret, turret_anchor_coords, turret_color,
                                all_sprites, ui_sprite_group, speed, rotation_speed,
-                               acceleration_speed, name)
+                               acceleration_speed, name, soldiers_max=soldiers_max)
         Unit.__init__(self, team_id, max_hp, fire_seconds=fire_seconds, attack_radius=attack_radius)
         self.hull.parent = self
         self.turret.parent = self

@@ -32,6 +32,9 @@ class Soldier:
     def get_y(self):
         return self.sprite.origin_y
 
+    def get_w(self):
+        return self.sprite.rect.w
+
     def rotate(self, angle: float):
         self.sprite.rotate(angle)
 
@@ -88,7 +91,7 @@ class Soldier:
                 self.fast_rotating = False
                 self.set_rotation_multiplier(0)
                 self.set_acceleration(1)
-            if distance < self.sprite.rect.w:
+            if (isinstance(self.waypoint, Waypoint) and distance < self.sprite.rect.w) or (not isinstance(self.waypoint, Waypoint) and distance < self.waypoint.get_w() * 2):
                 self.arrive_to_waypoint()
             if distance < self.sprite.rect.w or (self.past_waypoint_distance and distance > self.past_waypoint_distance):
                 self.press_break()

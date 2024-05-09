@@ -40,7 +40,7 @@ def bmp(x, y, sprite_group, all_sprites, ui_group, bullets_group, turret_color, 
                       x, y, hull,
                       turret, turret_anchor_coords, turret_color,
                       all_sprites, ui_group, 10, rotation_speed=1, name="БМП", damage=100, fire_seconds=0.1,
-                      attack_radius=500)
+                      soldiers_max=6, attack_radius=500)
 
 
 def bradley(x, y, sprite_group, all_sprites, ui_group, bullets_group, turret_color, team_id=0):
@@ -54,7 +54,21 @@ def bradley(x, y, sprite_group, all_sprites, ui_group, bullets_group, turret_col
                       x, y, hull,
                       turret, turret_anchor_coords, turret_color,
                       all_sprites, ui_group, 3, rotation_speed=1, name="BRADLEY", damage=400, fire_seconds=0.4,
-                      attack_radius=550)
+                      soldiers_max=6, attack_radius=550)
+
+
+def t80(x, y, sprite_group, all_sprites, ui_group, bullets_group, turret_color, team_id=0):
+    hull = GenericSprite(load_image("t80\\hull.png"), "hull", x, y, 11, 26, sprite_group,
+                         all_sprites)
+    turret = GenericSprite(load_image("t80\\turret.png"), "turret", x, y, 22, 34, sprite_group,
+                           all_sprites)
+    turret_anchor_coords = (11, 26)
+    return TurretUnit(team_id, 6000,
+                      bullets_group, sprite_group,
+                      x, y, hull,
+                      turret, turret_anchor_coords, turret_color,
+                      all_sprites, ui_group, 3, rotation_speed=1, name="T80U", damage=4000, fire_seconds=5,
+                      soldiers_max=0, attack_radius=1000)
 
 
 def crosshair(sprite_group, all_sprites, max_speed=1):

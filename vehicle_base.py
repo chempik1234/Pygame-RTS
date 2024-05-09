@@ -12,7 +12,7 @@ class Vehicle:
                  speed: float = 3, rotation_speed: float = .1, acceleration_speed=.1, name="unit",
                  soldiers_max=6):
         self.hull = hull_generic_sprite
-        self.hull.origin_x = x  #  - self.hull.rect.center[0]
+        self.hull.origin_x = x  # - self.hull.rect.center[0]
         self.hull.origin_y = y  # - self.hull.rect.center[1]
         self.origin_speed = speed
         self.current_speed = 0
@@ -37,6 +37,9 @@ class Vehicle:
 
     def get_y(self):
         return self.hull.origin_y
+
+    def get_w(self):
+        return self.hull.rect.w
 
     def can_get_in(self):
         return len(self.soldiers) < self.soldiers_max
@@ -150,9 +153,9 @@ class TurretVehicle(Vehicle):
     def __init__(self, x, y, hull_generic_sprite: GenericSprite,
                  turret: GenericSprite, turret_anchor_coords: tuple, turret_color,
                  all_sprites, ui_sprite_group, speed: float = 3, rotation_speed: float = .1,
-                 acceleration_speed=.1, name="unit"):
+                 acceleration_speed=.1, name="unit", soldiers_max=6):
         super().__init__(x, y, hull_generic_sprite, all_sprites, ui_sprite_group, speed, rotation_speed,
-                         acceleration_speed, name)
+                         acceleration_speed, name, soldiers_max=soldiers_max)
         self.turret = turret
         self.turret_anchor_coords = turret_anchor_coords
         self.turret_color = turret_color

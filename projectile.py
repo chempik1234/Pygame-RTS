@@ -7,7 +7,7 @@ class Projectile:
     def __init__(self, origin_x, origin_y, all_sprites, units_group, bullets_group, target_point: tuple,
                  team_id: int, damage: int = 1, speed: int = 20, lifetime: float = 2):
         self.sprite = factory.bullet_sprite(bullets_group, all_sprites, origin_x, origin_y, max_speed=speed,
-                                            parent_object=self, scale=max(1 + (damage - 100) / 300, .5))
+                                            parent_object=self, scale=min(max(1 + (damage - 100) / 300, .5), 3))
         self.units_group = units_group
         self.team_id = team_id
         self.damage = damage

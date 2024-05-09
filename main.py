@@ -200,7 +200,7 @@ class Game:
         return [
             factory.bmp(10, 30, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
                         self.colors[pyconfig.TURRET]),
-            factory.bmp(240, 80, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
+            factory.t80(240, 80, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
                         self.colors[pyconfig.TURRET]),
             factory.bradley(70, 630, self.units_group, self.all_gameplay_sprites, self.ui_group, self.bullets_group,
                             self.colors[pyconfig.TURRET], 1),
