@@ -9,6 +9,7 @@ from basicsprite import GenericSprite
 from projectile import Projectile
 from soldier import Soldier
 from vehicle_base import TurretVehicle
+from waypoint import Waypoint
 
 
 class Unit:
@@ -107,8 +108,9 @@ class TurretUnit(TurretVehicle, Unit):
 
     def die(self):
         super().die()
-        if self.waypoint:
+        if self.waypoint and isinstance(self.waypoint, Waypoint):
             self.waypoint.destroy()
+        self.disembark()
         self.turret.kill()
         self.hull.kill()
         self.selection_sprite.kill()
@@ -237,7 +239,7 @@ class SoldierUnit(Unit, Soldier):
 
     def die(self):
         super().die()
-        if self.waypoint:
+        if self.waypoint and isinstance(self.waypoint, Waypoint):
             self.waypoint.destroy()
         self.sprite.kill()
         self.selection_sprite.kill()

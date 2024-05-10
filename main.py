@@ -298,7 +298,7 @@ class Game:
                                                self.obstacles_group, self.bullets_group, team_id=self.player_team_id))
         # ENEMIES
         i = 0
-        while i < 12:
+        while i < 5:
             enemy_bmp = factory.apc(random.randint(-1000, 1000), random.randint(-2000, -1000), self.units_group,
                                     self.all_gameplay_sprites, self.ui_group,
                                     self.obstacles_group,
@@ -313,7 +313,7 @@ class Game:
                     break
             res.append(enemy_bmp)
         i = 0
-        while i < 12:
+        while i < 6:
             enemy_tank = factory.tank(random.randint(-1000, 1000), random.randint(-2000, -1000),
                                       self.units_group, self.all_gameplay_sprites, self.ui_group,
                                       self.obstacles_group,
